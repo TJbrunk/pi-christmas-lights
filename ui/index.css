@@ -32,3 +32,11 @@ ul li:nth-child(2n) {
 ul li:nth-child(2n + 1) {
   background: green;  
 }
+
+.delete-btn {
+  float: right;
+}
+.test-btn {
+  float: right;
+}
+

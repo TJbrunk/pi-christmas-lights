@@ -106,6 +106,19 @@ app.get('/play/:filename', async (req, res) => {
   await start(data);
 });
 
+app.delete('/:filename', async (req, res) => {
+  console.log(`Preparing to delete file ${req.params.filename}`);
+  const name = path.basename(req.params.filename);
+  const p = path.join(__dirname, '..', 'audio');
+
+  console.log(`Preparing to delete file ${name}`);
+  let regex = /name/;
+  fs.readdirSync(p)
+    .filter(f => regex.test(f))
+    .map(f => fs.unlinkSync(path + f));
+  res.send();
+});
+
 // Serve static files for the UI
 app.use(express.static('dist'));
 

@@ -96,8 +96,11 @@ class App extends React.Component {
     return (
       <ul>
         {this.state.list.map(song => 
-          <li onClick={() => this.onClick(song)}>
-            {this.state.playing === song ? '⏹' : '▶️'} {song}
+          <li>
+            <button onClick={() => this.onClick(song)}> {this.state.playing === song ? '⏹' : '▶️'} </button>
+            {song}
+            <button class="test-btn"> Test </button>
+            <button class="delete-btn"> Delete </button>
           </li>
         )}
       </ul>
