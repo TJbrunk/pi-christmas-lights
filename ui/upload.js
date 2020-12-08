@@ -16,7 +16,7 @@ const MIN_FREQ = 20;
 const MAX_FREQ = 15000;
 
 // This is the number of lights that are connected.
-const NUM_LIGHTS = 16;
+const NUM_LIGHTS = 8;
 
 // The number of bytes needed to represent a single frame.
 const BYTES_PER_FRAME = Math.ceil(NUM_LIGHTS / 8);
@@ -25,7 +25,7 @@ const BYTES_PER_FRAME = Math.ceil(NUM_LIGHTS / 8);
 const ROTATE_FRAMES = FPS;
 
 // This is the IP address the raspberry pi is running at.
-const PI_ADDRESS = 'http://pi.local';
+const PI_ADDRESS = 'http://192.168.1.2:3000';
 
 class App extends React.Component {
   constructor() {

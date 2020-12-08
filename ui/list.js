@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import './index.css';
 
 // This is the IP address the raspberry pi is running at.
-const PI_ADDRESS = 'http://pi.local';
+const PI_ADDRESS = 'http://192.168.1.2:3000';
 
 class App extends React.Component {
   constructor() {
@@ -87,6 +87,12 @@ class App extends React.Component {
   }
 
   render() {
+    if(this.state.list.length === 0) {
+        return <div>
+                 <h2> You must upload a song to begin</h2>
+                 <a href="http://192.168.1.2:3000/upload.html"> Upload Here </a>
+               </div>
+    }
     return (
       <ul>
         {this.state.list.map(song => 

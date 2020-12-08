@@ -4,26 +4,28 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const port = 3000;
 
+console.log("Starting app");
 // Configuration for light channels.
 // This uses physical raspberry pi pin numbers, not GPIO numbers.
 let LIGHTS = [
-  {pin: 11, on: null}, // Candy Canes Bottom
-  {pin: 12, on: null}, // Candy Canes Top
-  {pin: 13, on: null}, // Icicles Right
-  {pin: 15, on: null}, // Icicles Left
-  {pin: 16, on: null}, // Icicles Garage
-  {pin: 18, on: null}, // Stairs
-  {pin: 22, on: null}, // Handrails
-  {pin: 29, on: null},  // Tree
-  {pin: 31, on: null},
-  {pin: 32, on: null},
-  {pin: 33, on: null},
-  {pin: 35, on: null},
-  {pin: 36, on: null},
-  {pin: 37, on: null},
-  {pin: 38, on: null},
-  {pin: 40, on: null}
+  {pin: 3, on: null}, // Candy Canes Bottom
+  {pin: 5, on: null}, // Candy Canes Top
+  {pin: 7, on: null}, // Icicles Right
+  {pin: 8, on: null}, // Icicles Left
+  {pin: 10, on: null}, // Icicles Garage
+  {pin: 11, on: null}, // Stairs
+  {pin: 12, on: null}, // Handrails
+  {pin: 13, on: null},  // Tree
+//  {pin: 15, on: null},
+//  {pin: 16, on: null},
+//  {pin: 18, on: null},
+//  {pin: 19, on: null},
+//  {pin: 21, on: null},
+//  {pin: 22, on: null},
+//  {pin: 23, on: null},
+//  {pin: 24, on: null}
 ];
 
 const BYTES_PER_FRAME = Math.ceil(LIGHTS.length / 8);
@@ -43,6 +45,7 @@ app.use(bodyParser.raw({limit: '100mb'}));
 
 // Play the provided light data
 app.post('/play', async (req, res) => {
+  console.log('handling POST request to /play');
   let data = req.body;
   console.log(data);
 
@@ -59,6 +62,7 @@ app.post('/play', async (req, res) => {
 
 // Stop playing
 app.post('/stop', async (req, res) => {
+  console.log('handling POST request to /stop');
   await stop();
   res.sendStatus(200);
 });
@@ -68,23 +72,28 @@ app.post('/upload', async (req, res) => {
   let data = req.body;
   let filename = req.header('X-Filename');
 
+  console.log(`Handling uploaded file ${filename}`);
   fs.writeFileSync(path.join(__dirname, '..', 'audio', filename), data);
   res.send({success: true});
 });
 
 // List available audio files
 app.get('/list', async (req, res) => {
+  console.log('Getting list of uploaded files');
   let files = fs.readdirSync(path.join(__dirname, '..', 'audio')).filter(file => !file.endsWith('.bin') && !file.startsWith('.'));
   res.send({files});
 });
 
 // Get audio data
 app.get('/audio/:filename', async (req, res) => {
+  console.log(`Getting audio file: ${req.params.filename}`);
   res.sendFile(path.join(__dirname, '..', 'audio', req.params.filename));
 });
 
 // Play the light sequence for a specific file
 app.get('/play/:filename', async (req, res) => {
+  console.log(`Playing file ${req.params.filename}`);
+
   let data = fs.readFileSync(path.join(__dirname, '..', 'audio', req.params.filename + '.bin'));
   await stop();
 
@@ -177,4 +186,6 @@ function stop() {
   });
 }
 
-app.listen(3000);
+app.listen(port, () => {
+  console.log(`App listening at http://localhost:${port}`);
+});
