@@ -1,3 +1,5 @@
+audio/*.bin
+audio/*.mp3
 .cache
 .parcel-cache
 dist
