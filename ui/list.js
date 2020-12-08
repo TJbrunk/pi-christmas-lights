@@ -99,16 +99,19 @@ class App extends React.Component {
 
   render() {
     if(this.state.list.length === 0) {
-        return <div>
-                 <h2> You must upload a song to begin</h2>
-                 <a href={`${PI_ADDRESS}/upload.html`}> Upload Here </a>
-               </div>
+        return (
+          <div>
+            <h2> You must upload a song to begin</h2>
+              <a href={`${PI_ADDRESS}/upload.html`}> Upload Here </a>
+          </div>
+        )
     }
+    
     return (
       <ul>
         {this.state.list.map(song => 
           <li onClick={() => this.onClick(song)}>
-            <button class="test-btn"> Test </button>
+            <a class="test-btn" href={`/testlights.html?file=${song}`} > Test </a>
             <button class="delete-btn" onClick={() => this.deleteSong(song)}> Delete </button>
             {this.state.playing === song ? '⏹' : '▶️'} {song}
           </li>
