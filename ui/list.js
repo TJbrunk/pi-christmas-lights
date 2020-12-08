@@ -3,7 +3,8 @@ import ReactDOM from 'react-dom';
 import './index.css';
 
 // This is the IP address the raspberry pi is running at.
-const PI_ADDRESS = 'http://192.168.1.2:3000';
+const PI_ADDRESS = 'http://192.168.1.5:3000';
+// const PI_ADDRESS = 'http://192.168.1.2:3000';
 
 class App extends React.Component {
   constructor() {
@@ -45,6 +46,16 @@ class App extends React.Component {
       this.ctx.resume();
       this.start(song);
     }
+  }
+
+  // Post to server to delete the selected song. Then refresh
+  // the page to display the updated song list
+  async deleteSong(song) {
+    console.log(`Posting DELETE for song ${song}`);
+    await fetch(`${PI_ADDRESS}/${song}`, {
+      method: 'DELETE'
+    });
+    window.location.reload();
   }
 
   async start(filename) {
@@ -90,17 +101,16 @@ class App extends React.Component {
     if(this.state.list.length === 0) {
         return <div>
                  <h2> You must upload a song to begin</h2>
-                 <a href="http://192.168.1.2:3000/upload.html"> Upload Here </a>
+                 <a href={`${PI_ADDRESS}/upload.html`}> Upload Here </a>
                </div>
     }
     return (
       <ul>
         {this.state.list.map(song => 
-          <li>
-            <button onClick={() => this.onClick(song)}> {this.state.playing === song ? '⏹' : '▶️'} </button>
-            {song}
+          <li onClick={() => this.onClick(song)}>
             <button class="test-btn"> Test </button>
-            <button class="delete-btn"> Delete </button>
+            <button class="delete-btn" onClick={() => this.deleteSong(song)}> Delete </button>
+            {this.state.playing === song ? '⏹' : '▶️'} {song}
           </li>
         )}
       </ul>

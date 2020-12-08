@@ -25,7 +25,8 @@ const BYTES_PER_FRAME = Math.ceil(NUM_LIGHTS / 8);
 const ROTATE_FRAMES = FPS;
 
 // This is the IP address the raspberry pi is running at.
-const PI_ADDRESS = 'http://192.168.1.2:3000';
+const PI_ADDRESS = 'http://192.168.1.5:3000';
+// const PI_ADDRESS = 'http://192.168.1.2:3000';
 
 class App extends React.Component {
   constructor() {
@@ -227,7 +228,8 @@ class App extends React.Component {
   async upload() {
     // Upload the audio file and binary light show sequence data to the pi
     await this.uploadFile(this.filename, this.audioData);
-    await this.uploadFile(this.filename + '.bin', this.data.buffer);
+    let binFile = this.filename.split('.')[0]+'.bin';
+    await this.uploadFile(binFile, this.data.buffer);
   }
 
   async uploadFile(filename, data) {

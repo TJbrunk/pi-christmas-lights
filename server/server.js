@@ -1,5 +1,10 @@
 const express = require('express');
-const rpio = require('rpio');
+let rpio = undefined;
+try {
+  rpio = require('rpio');
+} catch (error) {
+  console.log('Failed to load rpio. If you\'re not running on the RPi you can ignore this')
+}
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const fs = require('fs');
@@ -34,8 +39,10 @@ const BYTES_PER_FRAME = Math.ceil(LIGHTS.length / 8);
 const ROTATE_FRAMES = 10;
 
 // Initialize the pins for each light
-for (let light of LIGHTS) {
-  rpio.open(light.pin, rpio.OUTPUT);
+if(rpio) {
+  for (let light of LIGHTS) {
+    rpio.open(light.pin, rpio.OUTPUT);
+  }
 }
 
 let app = express();
@@ -73,28 +80,36 @@ app.post('/upload', async (req, res) => {
   let filename = req.header('X-Filename');
 
   console.log(`Handling uploaded file ${filename}`);
-  fs.writeFileSync(path.join(__dirname, '..', 'audio', filename), data);
+  fs.writeFileSync(path.join(audio(), filename), data);
   res.send({success: true});
 });
 
 // List available audio files
 app.get('/list', async (req, res) => {
   console.log('Getting list of uploaded files');
-  let files = fs.readdirSync(path.join(__dirname, '..', 'audio')).filter(file => !file.endsWith('.bin') && !file.startsWith('.'));
+  let files = fs.readdirSync(audio())
+    .filter(file => !file.endsWith('.bin') && !file.startsWith('.')) // ignore the .bin files
+    .map(file => file.split('.')[0]); // strip off the file extension
   res.send({files});
 });
 
 // Get audio data
 app.get('/audio/:filename', async (req, res) => {
   console.log(`Getting audio file: ${req.params.filename}`);
-  res.sendFile(path.join(__dirname, '..', 'audio', req.params.filename));
+  // requested file doesn't have a file extension, so search the
+  // audio folder for a generic match but exclude '.bin' files
+  let rx = new RegExp(`${req.params.filename}(.*[^\.bin])`);
+  let file = fs.readdirSync(audio())
+    .filter(f => rx.test(f))[0]
+  
+  res.sendFile(audio(file));
 });
 
 // Play the light sequence for a specific file
 app.get('/play/:filename', async (req, res) => {
   console.log(`Playing file ${req.params.filename}`);
 
-  let data = fs.readFileSync(path.join(__dirname, '..', 'audio', req.params.filename + '.bin'));
+  let data = fs.readFileSync(path.join(audio(), req.params.filename + '.bin'));
   await stop();
 
   // Delay for 1 second to allow the music to start on the remote device.
@@ -107,15 +122,15 @@ app.get('/play/:filename', async (req, res) => {
 });
 
 app.delete('/:filename', async (req, res) => {
-  console.log(`Preparing to delete file ${req.params.filename}`);
-  const name = path.basename(req.params.filename);
-  const p = path.join(__dirname, '..', 'audio');
+  console.log(`Handling delete request for: ${req.params.filename}`);
 
-  console.log(`Preparing to delete file ${name}`);
-  let regex = /name/;
-  fs.readdirSync(p)
+  let regex = new RegExp(`${req.params.filename}.*`);
+  fs.readdirSync(audio())
     .filter(f => regex.test(f))
-    .map(f => fs.unlinkSync(path + f));
+    .map(f => {
+      console.log(`Deleting file: ${f}`);
+      fs.unlinkSync(path.join(audio(), f));
+    });
   res.send();
 });
 
@@ -154,7 +169,9 @@ async function play(data) {
           continue;
         }
   
-        rpio.write(light.pin, on ? rpio.HIGH : rpio.LOW);
+        if(rpio) {
+          rpio.write(light.pin, on ? rpio.HIGH : rpio.LOW);
+        }
         light.on = on;
       }
     }
@@ -197,6 +214,18 @@ function stop() {
   return playPromise.then(() => {
     playPromise = null;
   });
+}
+
+// helper function that returns the absolute path to the folder
+// that contains the audio files. If 'fileName' is provided,
+// the absolute path to that audio file is returned
+function audio(fileName) {
+  if(fileName) {
+    return path.join(__dirname, '..', 'audio', fileName);
+  }
+  else {
+    return path.join(__dirname, '..', 'audio')
+  }
 }
 
 app.listen(port, () => {
